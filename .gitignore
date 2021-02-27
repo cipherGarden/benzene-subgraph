@@ -9,6 +9,9 @@ yarn-error.log*s
 # Dependency directories
 node_modules/
 
+# Builds
+build/
+generated/
 
 # Optional npm cache directory
 .npm

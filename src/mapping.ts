@@ -1,36 +1,40 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { BigInt, BigDecimal, Address } from "@graphprotocol/graph-ts"
 import {
   Benzene,
   Mint,
   Burn,
   Approval,
-  Transfer
+  Transfer as TransferEvent
 } from "../generated/Benzene/Benzene"
-import { ExampleEntity } from "../generated/schema"
+import { Transfer, Account } from "../generated/schema"
+
+function getBenzeneInstance(address: Address): Benzene {
+  return Benzene.bind(address);
+}
 
 export function handleMint(event: Mint): void {
   // Entities can be loaded from the store using a string ID; this ID
   // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
+  // let entity = ExampleEntity.load(event.transaction.from.toHex())
 
   // Entities only exist after they have been saved to the store;
   // `null` checks allow to create entities on demand
-  if (entity == null) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
+  // if (entity == null) {
+    // entity = new ExampleEntity(event.transaction.from.toHex())
 
     // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
-  }
+    // entity.count = BigInt.fromI32(0)
+  // }
 
   // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
+  // entity.count = entity.count + BigInt.fromI32(1)
 
   // Entity fields can be set based on event parameters
-  entity.to = event.params.to
-  entity.amount = event.params.amount
+  // entity.to = event.params.to
+  // entity.amount = event.params.amount
 
   // Entities can be written to the store with `.save()`
-  entity.save()
+  // entity.save()
 
   // Note: If a handler doesn't require existing field values, it is faster
   // _not_ to load the entity from the store. Instead, create it fresh with
@@ -67,4 +71,17 @@ export function handleBurn(event: Burn): void {}
 
 export function handleApproval(event: Approval): void {}
 
-export function handleTransfer(event: Transfer): void {}
+export function handleTransfer(event: TransferEvent): void {
+  let bzn = getBenzeneInstance(event.address);
+
+  let transfer = new Transfer(event.transaction.hash.toHex() + "-" + event.logIndex.toString())
+
+  transfer.from = event.params.from;
+  transfer.account = event.params.from.toHex();
+  transfer.to = event.params.to;
+  transfer.value = event.params.value.toBigDecimal();
+  transfer.save();
+
+  let account = new Account(transfer.account);
+  account.save();
+}

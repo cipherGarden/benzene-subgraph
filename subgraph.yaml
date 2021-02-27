@@ -8,6 +8,7 @@ dataSources:
     source:
       address: "0x6524b87960c2d573ae514fd4181777e7842435d4"
       abi: Benzene
+      startBlock: 8481230
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -17,6 +18,7 @@ dataSources:
         - Burn
         - Approval
         - Transfer
+        - Account
       abis:
         - name: Benzene
           file: ./abis/Benzene.json
