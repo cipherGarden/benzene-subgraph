@@ -4,15 +4,44 @@ import {
   Mint,
   Burn,
   Approval,
-  Transfer as TransferEvent
+  Transfer as TransferEvent,
+  MigrateCall
 } from "../generated/Benzene/Benzene"
-import { Transfer, Account } from "../generated/schema"
+import { Token, Transfer, Account, Migrate } from "../generated/schema"
 
-function getBenzeneInstance(address: Address): Benzene {
-  return Benzene.bind(address);
+
+export function handleMigrate(call: MigrateCall): void {
+  
+  let migrate = new Migrate(call.transaction.hash.toHex())
+
+  migrate.contract = call.inputs.token
+  migrate.owner = call.inputs.account
+  migrate.amount = call.inputs.amount.toBigDecimal()
+
+  migrate.save()
+
 }
 
 export function handleMint(event: Mint): void {
+
+  let bzn = getBenzeneInstance(event.address);
+
+  let token = Token.load(event.address.toHex())
+
+  if (token == null) {
+    token = new Token(event.address.toHex())
+  }
+
+  token.address = event.address
+  token.decimals = bzn.decimals()
+  token.name = bzn.name()
+  token.symbol = bzn.symbol()
+  token.advisors = bzn.AdvisorPoolAddress()
+  token.team = bzn.TeamPoolAddress()
+  token.game = bzn.GamePoolAddress()
+
+  token.save()
+
   // Entities can be loaded from the store using a string ID; this ID
   // needs to be unique across all entities of the same type
   // let entity = ExampleEntity.load(event.transaction.from.toHex())
@@ -72,7 +101,6 @@ export function handleBurn(event: Burn): void {}
 export function handleApproval(event: Approval): void {}
 
 export function handleTransfer(event: TransferEvent): void {
-  let bzn = getBenzeneInstance(event.address);
 
   let transfer = new Transfer(event.transaction.hash.toHex() + "-" + event.logIndex.toString())
 
@@ -84,4 +112,8 @@ export function handleTransfer(event: TransferEvent): void {
 
   let account = new Account(transfer.account);
   account.save();
+}
+
+function getBenzeneInstance(address: Address): Benzene {
+  return Benzene.bind(address);
 }

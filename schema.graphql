@@ -1,3 +1,34 @@
+type Token @entity {
+  id: ID!
+
+  " Token contract address "
+  address: Bytes!
+
+  " Number of Decimals the token uses " 
+  decimals: Int!
+
+  " Name of the token "
+  name: String!
+
+  " Symbol of the token "
+  symbol: String!
+
+  " address of the advisor pool contract "
+  advisors: Bytes!
+
+  " address of the team pool contract "
+  team: Bytes!
+
+  " address of the game pool contract "
+  game: Bytes!
+
+}
+
+type Account @entity {
+  id: ID!
+  transfers: [Transfer!]! @derivedFrom(field: "account")
+}
+
 type Transfer @entity {
   id: ID!
   account: Account!
@@ -6,7 +37,16 @@ type Transfer @entity {
   value: BigDecimal!
 }
 
-type Account @entity {
+type Migrate @entity {
   id: ID!
-  transfers: [Transfer!]! @derivedFrom(field: "account")
+
+  " the address of the legacy token contract to migrate tokens from "
+  contract: Bytes!
+
+  " address of token holder whose tokens will be migrated"
+  owner: Bytes!
+
+  " amount of tokens to be migrated "
+  amount: BigDecimal!
+
 }

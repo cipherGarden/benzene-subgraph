@@ -31,4 +31,7 @@ dataSources:
           handler: handleApproval
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
+      callHandlers:
+        - function: migrate(address,address,uint256)
+          handler: handleMigrate
       file: ./src/mapping.ts
