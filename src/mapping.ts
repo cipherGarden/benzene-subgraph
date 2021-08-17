@@ -7,7 +7,7 @@ import {
   Transfer as TransferEvent,
   MigrateCall
 } from "../generated/Benzene/Benzene"
-import { Token, Transfer, Account, Migrate } from "../generated/schema"
+import { Token, Transfer, Account, Migrate, MintEvent } from "../generated/schema"
 
 
 export function handleMigrate(call: MigrateCall): void {
@@ -30,17 +30,31 @@ export function handleMint(event: Mint): void {
 
   if (token == null) {
     token = new Token(event.address.toHex())
+    token.mintEventCount = 0
+    token.address = event.address
+    token.decimals = bzn.decimals()
+    token.name = bzn.name()
+    token.symbol = bzn.symbol()
+    token.advisors = bzn.AdvisorPoolAddress()
+    token.team = bzn.TeamPoolAddress()
+    token.game = bzn.GamePoolAddress()
   }
 
-  token.address = event.address
-  token.decimals = bzn.decimals()
-  token.name = bzn.name()
-  token.symbol = bzn.symbol()
-  token.advisors = bzn.AdvisorPoolAddress()
-  token.team = bzn.TeamPoolAddress()
-  token.game = bzn.GamePoolAddress()
+  token.mintEventCount += 1
 
   token.save()
+
+
+  let mint = new MintEvent(event.transaction.hash.toHex())
+  mint.transaction = event.transaction.hash
+  mint.block = event.block.timestamp
+  mint.amount = event.params.amount
+  mint.sender = event.transaction.from
+  mint.minter = event.transaction.from
+  mint.destination = event.params.to
+
+  mint.save()
+
 
   // Entities can be loaded from the store using a string ID; this ID
   // needs to be unique across all entities of the same type
@@ -101,13 +115,16 @@ export function handleBurn(event: Burn): void {}
 export function handleApproval(event: Approval): void {}
 
 export function handleTransfer(event: TransferEvent): void {
+  //filter out burn transfers as those are reduntantly covered by burn event
+  if(event.params.to.toHexString() != "0x0000000000000000000000000000000000000000") {
 
+  }
   let transfer = new Transfer(event.transaction.hash.toHex() + "-" + event.logIndex.toString())
 
   transfer.from = event.params.from;
   transfer.account = event.params.from.toHex();
   transfer.to = event.params.to;
-  transfer.value = event.params.value.toBigDecimal();
+  transfer.value = event.params.value.toBigDecimal( / 10);
   transfer.save();
 
   let account = new Account(transfer.account);

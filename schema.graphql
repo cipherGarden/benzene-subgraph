@@ -22,6 +22,9 @@ type Token @entity {
   " address of the game pool contract "
   game: Bytes!
 
+  " total number of mint events "
+  mintEventCount: Int!
+
 }
 
 type Account @entity {
@@ -49,4 +52,25 @@ type Migrate @entity {
   " amount of tokens to be migrated "
   amount: BigDecimal!
 
+}
+
+type MintEvent @entity {
+  id: ID!
+
+  " Token address "
+  token: Bytes!
+
+  amount: BigInt!
+
+  sender: Bytes!
+
+  minter: Bytes!
+
+  destination: Bytes!
+
+  block: BigInt!
+
+  timestamp: BigInt!
+
+  transaction: Bytes!
 }
